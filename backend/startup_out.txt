@@ -1,0 +1,25 @@
+Server running on port 5000
+MongoDB connected
+[Upload] Cloudinary connection OK
+User connected: 6a2113d8ffa592690c3dfa45
+User connected: 6a2113d8ffa592690c3dfa45
+User disconnected: 6a2113d8ffa592690c3dfa45
+User disconnected: 6a2113d8ffa592690c3dfa45
+User connected: 6a2113d8ffa592690c3dfa45
+User connected: 6a2113d8ffa592690c3dfa45
+User disconnected: 6a2113d8ffa592690c3dfa45
+User connected: 6a2113d8ffa592690c3dfa45
+User disconnected: 6a2113d8ffa592690c3dfa45
+User connected: 6a2113d8ffa592690c3dfa45
+User connected: 6a21131cffa592690c3dfa34
+[Upload] Success: {
+  url: 'https://res.cloudinary.com/dbbb9clhp/image/upload/v1780569540/chatsphere/1780569537641-WhatsApp%20Image%202026-05-11%20at%204.01.10%20PM%20%281%29.jpg',
+  name: 'WhatsApp Image 2026-05-11 at 4.01.10 PM (1).jpeg',
+  size: 189343
+}
+[Upload] Success: {
+  url: 'https://res.cloudinary.com/dbbb9clhp/image/upload/v1780569567/chatsphere/1780569565481-WhatsApp%20Image%202026-05-11%20at%204.01.10%20PM%20%281%29.jpg',
+  name: 'WhatsApp Image 2026-05-11 at 4.01.10 PM (1).jpeg',
+  size: 189343
+}
+[sendMessage] sender=6a21131cffa592690c3dfa34, receiver=null, conv=6a2141992f97f06376e38640, type=image, msg=""
