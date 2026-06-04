@@ -19,12 +19,9 @@ const setupSocket = require('./socket/socketHandler');
 const app = express();
 const server = http.createServer(app);
 
+// ── CORS — allow all origins for Render + Netlify ──
 const corsOrigin = function (origin, callback) {
-  if (!origin || /^http:\/\/localhost:\d+$/.test(origin)) {
-    callback(null, true);
-  } else {
-    callback(new Error('Not allowed by CORS'));
-  }
+  callback(null, true);
 };
 
 const io = new Server(server, {
@@ -61,7 +58,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/calls', callRoutes);
 
-// Error handling middleware (catches multer and other errors)
+// ── Error handling middleware ──
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   if (err.code === 'LIMIT_FILE_SIZE') {
@@ -75,9 +72,11 @@ app.use((err, req, res, next) => {
 
 setupSocket(io);
 
+// ── MongoDB connection ──
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
+  .then(() => console.log('MongoDB connected ✅'))
   .catch(err => console.error('MongoDB connection error:', err));
 
+// ── Start server ──
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
