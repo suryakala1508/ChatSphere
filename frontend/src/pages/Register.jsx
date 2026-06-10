@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
-const API_URL='https://chatsphere-m9gn.onrender.com/';
+const API_URL='https://chatsphere-m9gn.onrender.com';
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
