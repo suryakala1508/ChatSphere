@@ -4,7 +4,7 @@ import UserList from './UserList';
 import { useSocket } from '../context/SocketContext';
 import { useChat } from '../context/ChatContext';
 import LoadingSkeleton from './LoadingSkeleton';
-
+const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectConversation, onToggleProfile, onNewGroup, isMobileOpen, onToggleTheme, isDark, onLogout }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/users', {
+        const res = await axios.get('${API_URL}/users', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsers(res.data);
@@ -75,7 +75,7 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
       // Create or find conversation before selecting
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.post('/api/conversations', {
+        const res = await axios.post('${API_URL}/conversations', {
           participantIds: [item.user._id],
           isGroup: false
         }, {
