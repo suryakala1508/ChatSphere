@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getInitials, getAvatarColor } from '../utils/helpers';
-
+const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 const Profile = ({ onClose }) => {
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -15,7 +15,7 @@ const Profile = ({ onClose }) => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/users/profile', {
+        const res = await axios.get('${API_URL}/users/profile', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUser(res.data);
@@ -37,11 +37,11 @@ const Profile = ({ onClose }) => {
       const formData = new FormData();
       formData.append('file', file);
       const token = localStorage.getItem('token');
-      const res = await axios.post('/api/upload', formData, {
+      const res = await axios.post('${API_URL}/upload', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('[Profile] Upload response:', res.data);
-      const profileRes = await axios.put('/api/users/profile', { avatar: res.data.url }, {
+      const profileRes = await axios.put('${API_URL}/users/profile', { avatar: res.data.url }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('[Profile] Profile update response:', profileRes.data);
@@ -59,7 +59,7 @@ const Profile = ({ onClose }) => {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.put('/api/users/profile', { name, status }, {
+      const res = await axios.put('${API_URL}/users/profile', { name, status }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(res.data);
