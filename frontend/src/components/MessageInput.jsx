@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useSocket } from '../context/SocketContext';
 import ImagePreview from './ImagePreview';
 import VoiceRecorder from './VoiceRecorder';
-
+const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 const MessageInput = ({ selectedUser, selectedConversation, message, setMessage, onTogglePicker, showPicker, onSendSuccess }) => {
   const [sendError, setSendError] = useState('');
   const [showImagePreview, setShowImagePreview] = useState(null);
@@ -63,7 +63,7 @@ const MessageInput = ({ selectedUser, selectedConversation, message, setMessage,
       const formData = new FormData();
       formData.append('file', file);
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/upload', {
+      const res = await fetch('${_URL}/upload', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
