@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useSocket } from './SocketContext';
 
 const ChatContext = createContext();
-
+const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 export const useChat = () => useContext(ChatContext);
 
 export const ChatProvider = ({ children }) => {
@@ -15,7 +15,7 @@ export const ChatProvider = ({ children }) => {
   const fetchConversations = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('/api/conversations', {
+      const res = await axios.get('${API_URL}/conversations', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConversations(res.data);
