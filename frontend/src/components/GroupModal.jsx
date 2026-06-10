@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-
+const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 const GroupModal = ({ onClose, onCreated }) => {
   const [groupName, setGroupName] = useState('');
   const [search, setSearch] = useState('');
@@ -13,7 +13,7 @@ const GroupModal = ({ onClose, onCreated }) => {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/users', {
+        const res = await axios.get('${API_URL}/users', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsers(res.data);
