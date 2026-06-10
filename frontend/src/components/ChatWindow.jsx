@@ -14,7 +14,7 @@ import {
   formatMessageTime, formatLastSeen, getInitials, getAvatarColor,
   groupMessagesByDate, shouldShowSender, shouldShowTimestamp
 } from '../utils/helpers';
-
+const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onConversationCreated }) => {
   const {
     messages, onlineUsers, typingUsers, fetchMessages, markMessagesRead,
@@ -67,7 +67,7 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
       if (response?.conversationId && !selectedConversation) {
         // Fetch the conversation data to populate state
         const token = localStorage.getItem('token');
-        fetch(`/api/conversations/${response.conversationId}`, {
+        fetch(`${API_URL}/conversations/${response.conversationId}`, {
           headers: { Authorization: `Bearer ${token}` }
         }).then(r => r.json()).then(conv => {
           onConversationCreated?.(conv);
