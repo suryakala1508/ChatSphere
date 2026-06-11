@@ -5,6 +5,28 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const router = express.Router();
 
+const serializeConversation = (conv, currentUserId) => {
+  const object = conv.toObject();
+  const myParticipation = object.participants.find(
+    p => p.userId && p.userId._id && p.userId._id.toString() === currentUserId
+  );
+  const otherParticipants = object.participants
+    .filter(p => p.userId && p.userId._id && p.userId._id.toString() !== currentUserId)
+    .map(p => p.userId);
+
+  return {
+    ...object,
+    unreadCount: myParticipation ? myParticipation.unreadCount : 0,
+    otherParticipants
+  };
+};
+
+const findPopulatedConversation = (id) => {
+  return Conversation.findById(id)
+    .populate('participants.userId', 'name email avatar status lastSeen')
+    .populate('lastMessage.senderId', 'name');
+};
+
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const conversations = await Conversation.find({
@@ -19,19 +41,7 @@ router.get('/', authMiddleware, async (req, res) => {
       return conv.participants.some(p => p.userId != null);
     });
 
-    const enriched = validConversations.map(conv => {
-      const myParticipation = conv.participants.find(
-        p => p.userId && p.userId._id && p.userId._id.toString() === req.user.userId
-      );
-      const otherParticipants = conv.participants
-        .filter(p => p.userId && p.userId._id && p.userId._id.toString() !== req.user.userId)
-        .map(p => p.userId);
-      return {
-        ...conv.toObject(),
-        unreadCount: myParticipation ? myParticipation.unreadCount : 0,
-        otherParticipants
-      };
-    });
+    const enriched = validConversations.map(conv => serializeConversation(conv, req.user.userId));
 
     res.json(enriched);
   } catch (err) {
@@ -53,7 +63,10 @@ router.post('/', authMiddleware, async (req, res) => {
       ],
       $expr: { $eq: [{ $size: '$participants' }, allParticipants.length] }
     });
-    if (existing) return res.json(existing);
+    if (existing) {
+      const populatedExisting = await findPopulatedConversation(existing._id);
+      return res.json(serializeConversation(populatedExisting, req.user.userId));
+    }
 
     const conversation = new Conversation({
       participants: allParticipants.map(id => ({ userId: id, unreadCount: 0 })),
@@ -64,10 +77,9 @@ router.post('/', authMiddleware, async (req, res) => {
 
     await conversation.save();
 
-    const populated = await Conversation.findById(conversation._id)
-      .populate('participants.userId', 'name email avatar status lastSeen');
+    const populated = await findPopulatedConversation(conversation._id);
 
-    res.status(201).json(populated);
+    res.status(201).json(serializeConversation(populated, req.user.userId));
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -154,6 +166,22 @@ router.get('/unread-counts', authMiddleware, async (req, res) => {
     });
 
     res.json(counts);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const conversation = await findPopulatedConversation(req.params.id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+
+    const isParticipant = conversation.participants.some(
+      p => p.userId && p.userId._id && p.userId._id.toString() === req.user.userId
+    );
+    if (!isParticipant) return res.status(403).json({ message: 'Not authorized' });
+
+    res.json(serializeConversation(conversation, req.user.userId));
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

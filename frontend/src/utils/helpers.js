@@ -134,6 +134,12 @@ export const getSenderId = (message) => {
   return sender._id || sender.id || '';
 };
 
+export const getEntityId = (entity) => {
+  if (!entity) return '';
+  if (typeof entity === 'string') return entity;
+  return entity._id || entity.id || '';
+};
+
 export const shouldShowSender = (messages, index) => {
   if (index === 0) return true;
   const prev = messages[index - 1];

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useSocket } from './SocketContext';
+import { getEntityId } from '../utils/helpers';
 
 const ChatContext = createContext();
 const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
@@ -35,7 +36,8 @@ export const ChatProvider = ({ children }) => {
 
     const handleConversationUpdated = (conv) => {
       setConversations(prev => {
-        const existing = prev.findIndex(c => c._id === conv._id);
+        if (!conv) return prev;
+        const existing = prev.findIndex(c => getEntityId(c) === getEntityId(conv));
         if (existing > -1) {
           const updated = [...prev];
           updated[existing] = conv;
@@ -57,12 +59,12 @@ export const ChatProvider = ({ children }) => {
   }, []);
 
   const getUnreadCount = useCallback((conversationId) => {
-    const conv = conversations.find(c => c._id === conversationId);
+    const conv = conversations.find(c => getEntityId(c) === conversationId);
     return conv?.unreadCount || 0;
   }, [conversations]);
 
   const getLastMessage = useCallback((conversationId) => {
-    const conv = conversations.find(c => c._id === conversationId);
+    const conv = conversations.find(c => getEntityId(c) === conversationId);
     return conv?.lastMessage || null;
   }, [conversations]);
 

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
-import { getSenderId } from '../utils/helpers';
+import { getEntityId, getSenderId } from '../utils/helpers';
 
 const SocketContext = createContext();
 const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
@@ -59,8 +59,8 @@ export const SocketProvider = ({ children }) => {
           : senderId;
         const convId = message.conversationId || otherUserId;
         if (!convId) return prev;
-        const existing = prev[convId] || [];
-        if (existing.some(m => m._id === message._id)) return prev;
+        const existing = (prev[convId] || []).filter(Boolean);
+        if (existing.some(m => getEntityId(m) === getEntityId(message))) return prev;
         return { ...prev, [convId]: [...existing, message] };
       });
     });
@@ -69,8 +69,8 @@ export const SocketProvider = ({ children }) => {
       setMessages(prev => {
         const updated = { ...prev };
         for (const key of Object.keys(updated)) {
-          updated[key] = updated[key].map(m =>
-            m._id === messageId ? { ...m, status: 'delivered', deliveredAt: new Date() } : m
+          updated[key] = (updated[key] || []).filter(Boolean).map(m =>
+            getEntityId(m) === messageId ? { ...m, status: 'delivered', deliveredAt: new Date() } : m
           );
         }
         return updated;
@@ -82,7 +82,7 @@ export const SocketProvider = ({ children }) => {
         const updated = { ...prev };
         const convKey = conversationId || userId;
         if (updated[convKey]) {
-          updated[convKey] = updated[convKey].map(m => {
+          updated[convKey] = updated[convKey].filter(Boolean).map(m => {
             const senderId = getSenderId(m);
             const isSentByMe = senderId === userIdRef.current;
             const isToThisUser = m.receiverId === userId || senderId === userId;
@@ -100,7 +100,7 @@ export const SocketProvider = ({ children }) => {
       setMessages(prev => {
         const updated = { ...prev };
         for (const key of Object.keys(updated)) {
-          updated[key] = updated[key].map(m =>
+          updated[key] = (updated[key] || []).filter(Boolean).map(m =>
             m.receiverId === userId || getSenderId(m) === userId
               ? { ...m, read: true, status: 'seen', seenAt: new Date() }
               : m
@@ -114,8 +114,8 @@ export const SocketProvider = ({ children }) => {
       setMessages(prev => {
         const updated = { ...prev };
         for (const key of Object.keys(updated)) {
-          updated[key] = updated[key].map(m =>
-            m._id === messageId
+          updated[key] = (updated[key] || []).filter(Boolean).map(m =>
+            getEntityId(m) === messageId
               ? { ...m, message: 'This message was deleted', deletedForEveryone: true, fileUrl: null, fileName: null }
               : m
           );
@@ -128,8 +128,8 @@ export const SocketProvider = ({ children }) => {
       setMessages(prev => {
         const updated = { ...prev };
         for (const key of Object.keys(updated)) {
-          updated[key] = updated[key].map(m =>
-            m._id === messageId ? { ...m, message: newMessage, edited } : m
+          updated[key] = (updated[key] || []).filter(Boolean).map(m =>
+            getEntityId(m) === messageId ? { ...m, message: newMessage, edited } : m
           );
         }
         return updated;
@@ -140,8 +140,8 @@ export const SocketProvider = ({ children }) => {
       setMessages(prev => {
         const updated = { ...prev };
         for (const key of Object.keys(updated)) {
-          updated[key] = updated[key].map(m =>
-            m._id === messageId ? { ...m, reactions } : m
+          updated[key] = (updated[key] || []).filter(Boolean).map(m =>
+            getEntityId(m) === messageId ? { ...m, reactions } : m
           );
         }
         return updated;
@@ -200,7 +200,12 @@ export const SocketProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API_URL}/messages/${conversationId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        params: { t: Date.now() },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache'
+        }
       });
       const data = Array.isArray(res.data) ? res.data : [];
       setMessages(prev => ({ ...prev, [conversationId]: data }));

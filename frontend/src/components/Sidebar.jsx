@@ -4,6 +4,7 @@ import UserList from './UserList';
 import { useSocket } from '../context/SocketContext';
 import { useChat } from '../context/ChatContext';
 import LoadingSkeleton from './LoadingSkeleton';
+import { getEntityId } from '../utils/helpers';
 const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectConversation, onToggleProfile, onNewGroup, isMobileOpen, onToggleTheme, isDark, onLogout }) => {
   const [users, setUsers] = useState([]);
@@ -30,7 +31,7 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
   }, [conversations]);
 
   // Build conversation list combining conversations and direct chats
-  const conversationList = conversations?.map(conv => {
+  const conversationList = conversations?.filter(Boolean).map(conv => {
     const otherParticipants = conv.otherParticipants || [];
     const otherUser = otherParticipants[0];
     return {
@@ -48,9 +49,9 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
 
   // Add direct users that don't have conversations yet
   const userConversationIds = new Set(
-    conversationList.map(c => c.user?._id).filter(Boolean)
+    conversationList.map(c => getEntityId(c.user)).filter(Boolean)
   );
-  const directUsers = users.filter(u => !userConversationIds.has(u._id)).map(u => ({
+  const directUsers = users.filter(Boolean).filter(u => !userConversationIds.has(getEntityId(u))).map(u => ({
     type: 'user',
     user: u,
     conversation: null,
@@ -76,7 +77,7 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
       try {
         const token = localStorage.getItem('token');
         const res = await axios.post(`${API_URL}/conversations`, {
-          participantIds: [item.user._id],
+          participantIds: [getEntityId(item.user)],
           isGroup: false
         }, {
           headers: { Authorization: `Bearer ${token}` }
@@ -94,9 +95,9 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
 
   const isItemActive = (item) => {
     if (item.type === 'conversation') {
-      return selectedConversation?._id === item.conversation._id;
+      return getEntityId(selectedConversation) === getEntityId(item.conversation);
     }
-    return selectedUser?._id === item.user?._id && !selectedConversation;
+    return getEntityId(selectedUser) === getEntityId(item.user) && !selectedConversation;
   };
 
   return (
@@ -190,10 +191,10 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
         ) : (
           filteredItems.map((item) => (
             <UserList
-              key={item.conversation?._id || item.user?._id}
+              key={getEntityId(item.conversation) || getEntityId(item.user)}
               conversation={item.conversation}
               user={item.user}
-              isOnline={item.user ? onlineUsers.includes(item.user._id) : false}
+              isOnline={item.user ? onlineUsers.includes(getEntityId(item.user)) : false}
               isActive={isItemActive(item)}
               onClick={() => handleSelect(item)}
               unreadCount={item.unreadCount}

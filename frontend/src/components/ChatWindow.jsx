@@ -12,7 +12,7 @@ import ScrollToBottom from './ScrollToBottom';
 import Lightbox from './Lightbox';
 import {
   formatMessageTime, formatLastSeen, getInitials, getAvatarColor,
-  groupMessagesByDate, shouldShowSender, getSenderId
+  groupMessagesByDate, shouldShowSender, getSenderId, getEntityId
 } from '../utils/helpers';
 const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onConversationCreated }) => {
@@ -37,22 +37,23 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
   const [sendSuccess, setSendSuccess] = useState('');
 
   const currentUserId = getUserId;
-  const conversationId = selectedConversation?._id || selectedUser?._id;
+  const conversationId = getEntityId(selectedConversation) || getEntityId(selectedUser);
   const chatMessages = conversationId ? (messages[conversationId] || []).filter(Boolean) : [];
   const isGroup = selectedConversation?.isGroup;
 
-  const isTyping = selectedUser ? typingUsers[selectedUser._id] : false;
+  const selectedUserId = getEntityId(selectedUser);
+  const isTyping = selectedUserId ? typingUsers[selectedUserId] : false;
   const partner = isGroup ? null : selectedUser;
 
   useEffect(() => {
     if (conversationId) {
       fetchMessages(conversationId);
-      markMessagesRead(conversationId, selectedUser?._id);
+      markMessagesRead(conversationId, selectedUserId);
       if (isGroup) {
         joinGroup(conversationId);
       }
     }
-  }, [conversationId, isGroup, selectedUser?._id, fetchMessages, markMessagesRead, joinGroup]);
+  }, [conversationId, isGroup, selectedUserId, fetchMessages, markMessagesRead, joinGroup]);
 
   // Auto-scroll to bottom whenever messages change
   useEffect(() => {
@@ -164,7 +165,8 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
     );
   }
 
-  const isOnline = partner ? isUserOnline(partner._id) : false;
+  const partnerId = getEntityId(partner);
+  const isOnline = partnerId ? isUserOnline(partnerId) : false;
   const displayName = isGroup ? selectedConversation.groupName : partner?.name || 'Unknown';
   const displayAvatar = isGroup ? selectedConversation.groupAvatar : partner?.avatar;
 
@@ -207,7 +209,7 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
             ) : isOnline ? (
               'Online'
             ) : partner ? (
-              `last seen ${formatLastSeen(lastSeenMap[partner._id] || partner.lastSeen)}`
+              `last seen ${formatLastSeen(lastSeenMap[partnerId] || partner.lastSeen)}`
             ) : ''}
           </p>
         </div>
@@ -275,7 +277,7 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
             {group.messages.map((msg, mi) => {
               const isSender = getSenderId(msg) === currentUserId;
               return (
-                <div key={msg._id} className="mb-1">
+                <div key={getEntityId(msg) || `${group.date}-${mi}`} className="mb-1">
                   {/* Show sender name in group chats */}
                   {isGroup && !isSender && shouldShowSender(group.messages, mi) && (
                     <p className="text-xs font-medium mb-0.5 ml-1" style={{ color: msg.senderId?.color || '#667781' }}>
