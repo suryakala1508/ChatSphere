@@ -63,7 +63,7 @@ const MessageInput = ({ selectedUser, selectedConversation, message, setMessage,
       const formData = new FormData();
       formData.append('file', file);
       const token = localStorage.getItem('token');
-      const res = await fetch('${_URL}/upload', {
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData

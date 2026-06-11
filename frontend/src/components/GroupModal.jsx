@@ -35,7 +35,7 @@ const GroupModal = ({ onClose, onCreated }) => {
     setCreating(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('/api/conversations', {
+      const res = await axios.post(`${API_URL}/conversations`, {
         participantIds: selectedIds,
         isGroup: true,
         groupName: groupName.trim()

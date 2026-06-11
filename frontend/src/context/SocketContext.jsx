@@ -1,8 +1,11 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import { getSenderId } from '../utils/helpers';
 
 const SocketContext = createContext();
+const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
+const SOCKET_URL = API_URL.replace(/\/api$/, '');
 
 export const useSocket = () => useContext(SocketContext);
 
@@ -28,7 +31,7 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const newSocket = io({
+    const newSocket = io(SOCKET_URL, {
       auth: { token }
     });
 
@@ -50,10 +53,12 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('receiveMessage', (message) => {
       setMessages(prev => {
         const currentUserId = userIdRef.current;
-        const otherUserId = message.senderId._id === currentUserId
+        const senderId = getSenderId(message);
+        const otherUserId = senderId === currentUserId
           ? message.receiverId
-          : message.senderId._id;
+          : senderId;
         const convId = message.conversationId || otherUserId;
+        if (!convId) return prev;
         const existing = prev[convId] || [];
         if (existing.some(m => m._id === message._id)) return prev;
         return { ...prev, [convId]: [...existing, message] };
@@ -78,8 +83,9 @@ export const SocketProvider = ({ children }) => {
         const convKey = conversationId || userId;
         if (updated[convKey]) {
           updated[convKey] = updated[convKey].map(m => {
-            const isSentByMe = m.senderId._id === userIdRef.current;
-            const isToThisUser = m.receiverId === userId || m.senderId._id === userId;
+            const senderId = getSenderId(m);
+            const isSentByMe = senderId === userIdRef.current;
+            const isToThisUser = m.receiverId === userId || senderId === userId;
             if (isSentByMe && (isToThisUser || m.conversationId === conversationId)) {
               return { ...m, status: 'seen', read: true, seenAt: new Date() };
             }
@@ -95,7 +101,7 @@ export const SocketProvider = ({ children }) => {
         const updated = { ...prev };
         for (const key of Object.keys(updated)) {
           updated[key] = updated[key].map(m =>
-            m.receiverId === userId || m.senderId._id === userId
+            m.receiverId === userId || getSenderId(m) === userId
               ? { ...m, read: true, status: 'seen', seenAt: new Date() }
               : m
           );
@@ -193,11 +199,12 @@ export const SocketProvider = ({ children }) => {
   const fetchMessages = useCallback(async (conversationId) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`/api/messages/${conversationId}`, {
+      const res = await axios.get(`${API_URL}/messages/${conversationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMessages(prev => ({ ...prev, [conversationId]: res.data }));
-      return res.data;
+      const data = Array.isArray(res.data) ? res.data : [];
+      setMessages(prev => ({ ...prev, [conversationId]: data }));
+      return data;
     } catch (err) {
       console.error('Error fetching messages:', err);
       return [];

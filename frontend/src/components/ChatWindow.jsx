@@ -12,7 +12,7 @@ import ScrollToBottom from './ScrollToBottom';
 import Lightbox from './Lightbox';
 import {
   formatMessageTime, formatLastSeen, getInitials, getAvatarColor,
-  groupMessagesByDate, shouldShowSender, shouldShowTimestamp
+  groupMessagesByDate, shouldShowSender, getSenderId
 } from '../utils/helpers';
 const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onConversationCreated }) => {
@@ -38,7 +38,7 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
 
   const currentUserId = getUserId;
   const conversationId = selectedConversation?._id || selectedUser?._id;
-  const chatMessages = conversationId ? (messages[conversationId] || []) : [];
+  const chatMessages = conversationId ? (messages[conversationId] || []).filter(Boolean) : [];
   const isGroup = selectedConversation?.isGroup;
 
   const isTyping = selectedUser ? typingUsers[selectedUser._id] : false;
@@ -92,7 +92,7 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
   // Context menu handlers
   const handleContextMenu = useCallback((e, msg) => {
     e.preventDefault();
-    if (msg.senderId._id === currentUserId) {
+    if (getSenderId(msg) === currentUserId) {
       setContextMenu({ x: e.clientX, y: e.clientY, msgId: msg._id, msg });
     }
   }, [currentUserId]);
@@ -142,7 +142,7 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
       action: () => handleDelete(contextMenu.msgId, 'everyone')
     }
   ].filter(opt => {
-    const isSender = contextMenu.msg.senderId._id === currentUserId;
+    const isSender = getSenderId(contextMenu.msg) === currentUserId;
     if (opt.label === 'Edit' && !isSender) return false;
     if (opt.label === 'Delete for everyone' && !isSender) return false;
     return true;
@@ -273,7 +273,7 @@ const ChatWindow = ({ selectedUser, selectedConversation, onToggleSidebar, onCon
           <div key={gi}>
             <DateSeparator timestamp={group.date} />
             {group.messages.map((msg, mi) => {
-              const isSender = msg.senderId._id === currentUserId;
+              const isSender = getSenderId(msg) === currentUserId;
               return (
                 <div key={msg._id} className="mb-1">
                   {/* Show sender name in group chats */}

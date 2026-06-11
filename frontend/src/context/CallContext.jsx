@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useSocket } from './SocketContext';
 
 const CallContext = createContext();
+const API_URL = 'https://chatsphere-m9gn.onrender.com/api';
 
 export const useCall = () => useContext(CallContext);
 
@@ -201,7 +202,7 @@ export const CallProvider = ({ children }) => {
       setCallType(type);
       setCallState('ringing');
       try {
-        const res = await axios.get(`/api/users/${callerId}`, {
+        const res = await axios.get(`${API_URL}/users/${callerId}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setCallPartner(res.data);

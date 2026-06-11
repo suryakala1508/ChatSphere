@@ -107,7 +107,7 @@ export const groupMessagesByDate = (messages) => {
   let currentDate = null;
   let currentGroup = [];
 
-  for (const msg of messages) {
+  for (const msg of messages.filter(Boolean)) {
     const msgDate = new Date(msg.timestamp).toDateString();
     if (msgDate !== currentDate) {
       if (currentGroup.length > 0) {
@@ -127,11 +127,18 @@ export const groupMessagesByDate = (messages) => {
   return groups;
 };
 
+export const getSenderId = (message) => {
+  const sender = message?.senderId;
+  if (!sender) return '';
+  if (typeof sender === 'string') return sender;
+  return sender._id || sender.id || '';
+};
+
 export const shouldShowSender = (messages, index) => {
   if (index === 0) return true;
   const prev = messages[index - 1];
   const curr = messages[index];
-  return prev.senderId._id !== curr.senderId._id;
+  return getSenderId(prev) !== getSenderId(curr);
 };
 
 export const shouldShowTimestamp = (messages, index) => {
@@ -139,5 +146,5 @@ export const shouldShowTimestamp = (messages, index) => {
   const curr = messages[index];
   const next = messages[index + 1];
   const diff = new Date(next.timestamp) - new Date(curr.timestamp);
-  return diff > 60000 || curr.senderId._id !== next.senderId._id;
+  return diff > 60000 || getSenderId(curr) !== getSenderId(next);
 };
