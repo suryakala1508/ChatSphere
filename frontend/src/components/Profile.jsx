@@ -15,7 +15,7 @@ const Profile = ({ onClose }) => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('${API_URL}/users/profile', {
+        const res = await axios.get(`${API_URL}/users/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUser(res.data);
@@ -37,11 +37,11 @@ const Profile = ({ onClose }) => {
       const formData = new FormData();
       formData.append('file', file);
       const token = localStorage.getItem('token');
-      const res = await axios.post('${API_URL}/upload', formData, {
+      const res = await axios.post(`${API_URL}/upload`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('[Profile] Upload response:', res.data);
-      const profileRes = await axios.put('${API_URL}/users/profile', { avatar: res.data.url }, {
+      const profileRes = await axios.put(`${API_URL}/users/profile`, { avatar: res.data.url }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('[Profile] Profile update response:', profileRes.data);
@@ -59,7 +59,7 @@ const Profile = ({ onClose }) => {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.put('${API_URL}/users/profile', { name, status }, {
+      const res = await axios.put(`${API_URL}/users/profile`, { name, status }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(res.data);

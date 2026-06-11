@@ -13,7 +13,7 @@ const GroupModal = ({ onClose, onCreated }) => {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('${API_URL}/users', {
+        const res = await axios.get(`${API_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsers(res.data);
