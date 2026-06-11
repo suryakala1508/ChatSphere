@@ -15,9 +15,9 @@ export const ChatProvider = ({ children }) => {
   const fetchConversations = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('${API_URL}/conversations', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get(`${API_URL}/conversations`, {
+  headers: { Authorization: `Bearer ${token}` }
+});
       setConversations(res.data);
     } catch (err) {
       console.error('Error fetching conversations:', err);
