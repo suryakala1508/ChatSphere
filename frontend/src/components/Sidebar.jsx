@@ -16,7 +16,7 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('${API_URL}/users', {
+        const res = await axios.get(`${API_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsers(res.data);
@@ -75,7 +75,7 @@ const Sidebar = ({ selectedUser, selectedConversation, onSelectUser, onSelectCon
       // Create or find conversation before selecting
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.post('${API_URL}/conversations', {
+        const res = await axios.post(`${API_URL}/conversations`, {
           participantIds: [item.user._id],
           isGroup: false
         }, {
